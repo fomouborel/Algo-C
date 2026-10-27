@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   ALGO_CHAPTERS,
   C_CHAPTERS,
+  PROJET_CHAPTERS,
   ALL_CHAPTERS,
   LAB_TEMPLATES,
   getBridgePairs,
@@ -9,11 +10,16 @@ import {
 import { runPseudoCodeTestSuite, compileAndRunPseudoCode } from '../../engines/algoEngine';
 import { runCCodeTestSuite, compileAndRunC } from '../../engines/c99Engine';
 
-describe('Validation intégrale du programme pédagogique (32 chapitres A01-A16 et B01-B16)', () => {
-  it('contient exactement 16 chapitres Algorithmique (A01..A16) et 16 chapitres C (B01..B16)', () => {
+describe('Validation intégrale du programme pédagogique (A01-A16, B01-B16 et C01-C10)', () => {
+  it('contient 16 chapitres Algorithmique (A01..A16), 16 chapitres C (B01..B16) et 10 chapitres Projet (C01..C10)', () => {
     expect(ALGO_CHAPTERS.length).toBe(16);
     expect(C_CHAPTERS.length).toBe(16);
-    expect(ALL_CHAPTERS.length).toBe(32);
+    expect(PROJET_CHAPTERS.length).toBe(10);
+    expect(ALL_CHAPTERS.length).toBe(42);
+
+    for (let i = 1; i <= 10; i++) {
+      expect(PROJET_CHAPTERS[i - 1].id).toBe(`C${String(i).padStart(2, '0')}`);
+    }
 
     for (let i = 1; i <= 16; i++) {
       const aId = `A${String(i).padStart(2, '0')}`;

@@ -12,6 +12,7 @@ import {
   Menu,
   Moon,
   Settings,
+  ShoppingCart,
   Sun,
   Terminal,
   X,
@@ -32,7 +33,9 @@ import {
   ALGO_CHAPTERS,
   ALL_CHAPTERS,
   C_CHAPTERS,
+  PROJET_CHAPTERS,
   getChapterById,
+  getChaptersByTrack,
 } from './data/curriculumIndex';
 import {
   clearAllStoredProgress,
@@ -114,7 +117,7 @@ export const App: React.FC = () => {
 
   const handleSelectTrack = (targetTrack: TrackId) => {
     setMobileMenuOpen(false);
-    const defaultChap = targetTrack === 'algo' ? 'A01' : 'B01';
+    const defaultChap = getChaptersByTrack(targetTrack)[0].id;
     commitState(
       updateLastLocation(progress, {
         screen: 'chapters',
@@ -291,11 +294,20 @@ export const App: React.FC = () => {
                 </option>
               ))}
             </optgroup>
+            <optgroup label="Parcours C — Projet ShopFlow (C01–C10)">
+              {PROJET_CHAPTERS.map((ch) => (
+                <option key={ch.id} value={ch.id}>
+                  {ch.id} — {ch.title} {progress.chapters[ch.id]?.validated ? '✓' : ''}
+                </option>
+              ))}
+            </optgroup>
           </select>
 
           <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-semibold">
             <Award className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-            <span>{totalValidated} / 32 validés</span>
+            <span>
+              {totalValidated} / {ALL_CHAPTERS.length} validés
+            </span>
           </div>
 
           <button
@@ -371,6 +383,22 @@ export const App: React.FC = () => {
                   <span>Parcours B — Langage C99</span>
                 </span>
                 <span className="text-[11px] opacity-80">16 chap.</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSelectTrack('projet')}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition cursor-pointer ${
+                  screen === 'chapters' && trackId === 'projet'
+                    ? 'bg-orange-600 text-white shadow-sm'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <span className="flex items-center gap-2.5">
+                  <ShoppingCart className="w-4 h-4 text-orange-500" />
+                  <span>Parcours C — Projet ShopFlow</span>
+                </span>
+                <span className="text-[11px] opacity-80">{PROJET_CHAPTERS.length} chap.</span>
               </button>
 
               <button
@@ -487,6 +515,39 @@ export const App: React.FC = () => {
                         </span>
                         {isVal && (
                           <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <div className="text-[11px] font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400 px-2 mb-1.5">
+                  C. Projet ShopFlow (C01–C10)
+                </div>
+                <div className="space-y-0.5 max-h-48 overflow-y-auto pr-1">
+                  {PROJET_CHAPTERS.map((ch) => {
+                    const isCurrent =
+                      (screen === 'lesson' || screen === 'exercise') &&
+                      activeChapter.id === ch.id;
+                    const isVal = Boolean(progress.chapters[ch.id]?.validated);
+                    return (
+                      <button
+                        key={ch.id}
+                        type="button"
+                        onClick={() => handleOpenChapterLesson(ch.id)}
+                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-left transition cursor-pointer ${
+                          isCurrent
+                            ? 'bg-orange-50 dark:bg-orange-950/70 text-orange-800 dark:text-orange-200 font-bold'
+                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'
+                        }`}
+                      >
+                        <span className="truncate">
+                          <strong className="font-mono mr-1">{ch.id}</strong> {ch.title}
+                        </span>
+                        {isVal && (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-orange-500 shrink-0" />
                         )}
                       </button>
                     );

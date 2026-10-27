@@ -1,4 +1,4 @@
-export type TrackId = 'algo' | 'c';
+export type TrackId = 'algo' | 'c' | 'projet';
 
 export type DifficultyLevel = 'debutant' | 'intermediaire' | 'avance' | 'synthese';
 
@@ -79,6 +79,7 @@ export interface CodeTestCase {
   expectedExitCode?: number;
   mustContainConstructs?: string[];
   forbiddenConstructs?: string[];
+  forbidMemoryLeaks?: boolean; // Fails the test when LeakSanitizer reports unfreed heap blocks
   explanation: string;
 }
 
@@ -155,7 +156,7 @@ export interface Exercise {
 }
 
 export interface Chapter {
-  id: string; // e.g. 'A01' .. 'A16', 'B01' .. 'B16'
+  id: string; // e.g. 'A01' .. 'A16', 'B01' .. 'B16', 'C01' .. 'C10'
   trackId: TrackId;
   number: number;
   title: string;

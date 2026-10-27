@@ -33,6 +33,7 @@ import {
 } from '../types/curriculum';
 import { CodeEditorWithLines } from './CodeEditorWithLines';
 import { MemoryAndTraceInspector } from './MemoryAndTraceInspector';
+import { RichText } from './RichText';
 
 interface ExerciseViewProps {
   chapter: Chapter;
@@ -500,8 +501,8 @@ export const ExerciseView: React.FC<ExerciseViewProps> = ({
         </div>
 
         {/* Statement */}
-        <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 text-sm text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line">
-          {exercise.statement}
+        <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 text-sm text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-wrap overflow-x-auto">
+          <RichText text={exercise.statement} />
         </div>
 
         {/* Cross-track Bridge Banner if available */}
@@ -960,7 +961,9 @@ export const ExerciseView: React.FC<ExerciseViewProps> = ({
           {feedback.passed && exercise.detailedExplanation && (
             <div className="pt-2 border-t border-emerald-200 dark:border-emerald-800/80 text-xs sm:text-sm leading-relaxed">
               <strong>Explication pédagogique complète : </strong>
-              {exercise.detailedExplanation}
+              <span className="whitespace-pre-line">
+                <RichText text={exercise.detailedExplanation} />
+              </span>
             </div>
           )}
         </div>
@@ -1026,8 +1029,8 @@ export const ExerciseView: React.FC<ExerciseViewProps> = ({
             <div className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
               Explication détaillée de la solution
             </div>
-            <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
-              {exercise.detailedExplanation}
+            <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+              <RichText text={exercise.detailedExplanation} />
             </p>
 
             {exercise.referenceSolution && (

@@ -14,7 +14,7 @@ import {
   Sparkles,
   Target,
 } from 'lucide-react';
-import { getChapterById, getChaptersByTrack } from '../data/curriculumIndex';
+import { getChapterById, getChaptersByTrack, TRACK_LABELS } from '../data/curriculumIndex';
 import { executeCInSandbox, executePseudoInSandbox } from '../engines/workerClient';
 import {
   AnnotatedExample,
@@ -23,6 +23,7 @@ import {
   StudentProgressState,
 } from '../types/curriculum';
 import { MemoryAndTraceInspector } from './MemoryAndTraceInspector';
+import { RichText } from './RichText';
 
 interface LessonViewProps {
   chapter: Chapter;
@@ -247,7 +248,7 @@ export const LessonView: React.FC<LessonViewProps> = ({
         >
           <ArrowLeft className="w-4 h-4" />
           <span>
-            Retour au sommaire ({chapter.trackId === 'algo' ? 'Parcours A' : 'Parcours B'})
+            Retour au sommaire (Parcours {TRACK_LABELS[chapter.trackId].letter})
           </span>
         </button>
 
@@ -290,10 +291,12 @@ export const LessonView: React.FC<LessonViewProps> = ({
             className={`px-2.5 py-1 rounded-md font-mono text-xs font-bold ${
               chapter.trackId === 'algo'
                 ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300'
-                : 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300'
+                : chapter.trackId === 'c'
+                ? 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300'
+                : 'bg-orange-100 dark:bg-orange-950 text-orange-800 dark:text-orange-300'
             }`}
           >
-            {chapter.trackId === 'algo' ? 'Parcours A • Algorithmique' : 'Parcours B • Langage C'}{' '}
+            Parcours {TRACK_LABELS[chapter.trackId].letter} • {TRACK_LABELS[chapter.trackId].short}{' '}
             — Chapitre {chapter.id}
           </span>
           {chapProgress?.validated && (
@@ -392,7 +395,7 @@ export const LessonView: React.FC<LessonViewProps> = ({
               <span>1. Comprendre intuitivement la notion</span>
             </h2>
             <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
-              {chapter.lesson.intuition}
+              <RichText text={chapter.lesson.intuition} />
             </div>
           </div>
 
@@ -401,8 +404,8 @@ export const LessonView: React.FC<LessonViewProps> = ({
               <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               <span>2. Définition rigoureuse &amp; Règles formelles</span>
             </h2>
-            <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200/80 dark:border-slate-800">
-              {chapter.lesson.formalDefinition}
+            <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 overflow-x-auto">
+              <RichText text={chapter.lesson.formalDefinition} />
             </div>
           </div>
         </div>
@@ -418,7 +421,7 @@ export const LessonView: React.FC<LessonViewProps> = ({
               {chapter.lesson.analogy.title}
             </h3>
             <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
-              {chapter.lesson.analogy.content}
+              <RichText text={chapter.lesson.analogy.content} />
             </p>
           </div>
 
@@ -532,7 +535,9 @@ export const LessonView: React.FC<LessonViewProps> = ({
           {chapter.lesson.summary.map((point, idx) => (
             <li key={idx} className="flex items-start gap-2.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-              <span>{point}</span>
+              <span>
+                <RichText text={point} />
+              </span>
             </li>
           ))}
         </ul>

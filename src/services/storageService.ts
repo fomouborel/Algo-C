@@ -487,7 +487,8 @@ export function validateAndImportProgressJson(rawJson: string): {
           ].includes(locRaw.screen)
             ? locRaw.screen
             : 'dashboard',
-        trackId: locRaw.trackId === 'c' ? 'c' : 'algo',
+        trackId:
+          locRaw.trackId === 'c' || locRaw.trackId === 'projet' ? locRaw.trackId : 'algo',
         chapterId:
           typeof locRaw.chapterId === 'string' && locRaw.chapterId.length > 0
             ? locRaw.chapterId
