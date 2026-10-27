@@ -100,6 +100,24 @@ Lorsque vous ouvrez la plateforme, vous arrivez sur le **Tableau de bord** :
 | **Palier 5** | `A10` (Tableaux), `A11` (Somme/Min/Max), `A12` (Recherche), `A13` (Tris) | `B10` (Tableaux), `B11` (Chaînes `\0`), `B12` (Pointeurs `*` et `&`) | **Passerelle 5** |
 | **Palier 6** | `A14` (Traces), `A15` (Tests & Débogage), `A16` (Synthèse Algo) | `B13` (`struct`), `B14` (Débogage), `B15` (`malloc`/`free`), `B16` (Synthèse C) | **Passerelle 6** |
 
+### 4.1 bis. Parcours C — Concepts du mini-projet ShopFlow
+Le **Parcours C** (`C01` à `C10`, entrée « Parcours C — Projet ShopFlow » du menu) prépare le mini-projet *ShopFlow — Gestion des commandes d'une boutique en ligne*. Chaque chapitre isole une notion du sujet, avec la même pédagogie que les parcours A et B :
+
+| Chapitre | Notion | Utilité dans ShopFlow |
+| :---: | :--- | :--- |
+| `C01` | Programmation modulaire (`.h`, `.c`, `types.h`, Makefile) | Les 6 modules imposés, sans inclusion circulaire |
+| `C02` | Structures imbriquées, copie, validation de `Date` | `Date` dans `Commande`, `Adresse` dans `Client` |
+| `C03` | Saisie sécurisée et validation des chaînes | Email, code postal, téléphone, recherche par mot-clé |
+| `C04` | Tableaux dynamiques (`malloc`, `realloc`, capacité) | Produits, clients, commandes, lignes |
+| `C05` | Allocation à 4 niveaux et libération sans fuite | `detruireBoutique`, valgrind |
+| `C06` | Règles métier et calcul en cascade | Remise, TVA, frais de port, points de fidélité |
+| `C07` | `enum` et machine à états | `EN_COURS → EXPEDIEE → LIVREE`, annulation |
+| `C08` | Recherche, unicité, suppression logique, stock | Règles 7 à 10 du sujet |
+| `C09` | Agrégation, tri, `qsort` | Chiffre d'affaires par période, palmarès |
+| `C10` | Synthèse : menu, initialisation, cycle de vie | Assemblage du `main.c` |
+
+Prérequis conseillés : `B11` (chaînes), `B12` (pointeurs), `B13` (structures) et `B15` (mémoire). Le bac à sable ne compile qu'un seul fichier : les modules y sont simulés par des sections commentées `/* ===== produit.h ===== */`.
+
 ### 4.2. Explorer la liste des chapitres (`Parcours A` ou `Parcours B`)
 En cliquant sur **Parcours A** ou **Parcours B** dans le menu latéral :
 - Vous pouvez **filtrer les chapitres** grâce aux boutons en haut à droite :

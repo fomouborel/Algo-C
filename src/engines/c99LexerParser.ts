@@ -122,6 +122,10 @@ export function preprocessC(
     ['CHAR_MIN', '(-128)'],
     ['M_PI', '3.141592653589793'],
     ['RAND_MAX', '32767'],
+    // Standard streams: the sandbox has a single input and output, the handle value is unused.
+    ['stdin', '0'],
+    ['stdout', '1'],
+    ['stderr', '2'],
   ]);
   const funcMacros = new Map<string, { params: string[]; body: string }>();
 
@@ -201,12 +205,59 @@ export function preprocessC(
   // 2. Process preprocessor directives line by line
   const lines = noComments.split('\n');
   const outLines: string[] = [];
+  // Conditional compilation stack (#ifdef / #ifndef / #if / #else / #endif)
+  const condStack: { parentActive: boolean; active: boolean }[] = [];
+  const isActive = () => condStack.length === 0 || condStack[condStack.length - 1].active;
+  const isDefined = (name: string) => objectMacros.has(name) || funcMacros.has(name);
 
   for (let ln = 0; ln < lines.length; ln++) {
     const rawLine = lines[ln];
     const trimmed = rawLine.trim();
 
+    const condMatch = trimmed.match(/^#\s*(ifdef|ifndef|if|else|endif)\b\s*(.*)$/);
+    if (condMatch) {
+      const directive = condMatch[1];
+      const arg = condMatch[2].trim();
+      if (directive === 'ifdef' || directive === 'ifndef' || directive === 'if') {
+        let cond: boolean;
+        if (directive === 'if') {
+          const defMatch = arg.match(/^(!?)\s*defined\s*\(?\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\)?$/);
+          if (defMatch) {
+            cond = defMatch[1] === '!' ? !isDefined(defMatch[2]) : isDefined(defMatch[2]);
+          } else {
+            const value = Number(objectMacros.get(arg) ?? arg);
+            cond = Number.isNaN(value) ? true : value !== 0;
+          }
+        } else {
+          const name = arg.split(/\s+/)[0] ?? '';
+          cond = directive === 'ifdef' ? isDefined(name) : !isDefined(name);
+        }
+        const parentActive = isActive();
+        condStack.push({ parentActive, active: parentActive && cond });
+      } else if (directive === 'else') {
+        const top = condStack[condStack.length - 1];
+        if (top) top.active = top.parentActive && !top.active;
+      } else {
+        condStack.pop();
+      }
+      outLines.push('');
+      continue;
+    }
+
+    if (!isActive()) {
+      outLines.push('');
+      continue;
+    }
+
     if (trimmed.startsWith('#')) {
+      const undefMatch = trimmed.match(/^#\s*undef\s+([a-zA-Z_][a-zA-Z0-9_]*)/);
+      if (undefMatch) {
+        objectMacros.delete(undefMatch[1]);
+        funcMacros.delete(undefMatch[1]);
+        outLines.push('');
+        continue;
+      }
+
       const incMatch = trimmed.match(/^#\s*include\s*[<"]([^>"]+)[>"]/);
       if (incMatch) {
         const hdr = incMatch[1].trim();

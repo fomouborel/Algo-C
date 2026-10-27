@@ -11,6 +11,7 @@ Cette application web est une plateforme d'apprentissage interactive, détermini
 - **Double Parcours Complet (32 Chapitres rédigés intégralement)** :
   - **Parcours A — Algorithmique & Pseudo-code (`A01` à `A16`)** : Résolution de problèmes, variables et types, expressions (`DIV`, `MOD`), entrées/sorties, conditions simples et imbriquées, choix multiples (`SELON`), boucles (`POUR`, `TANT QUE`, `REPETER`), fonctions et procédures, passage par valeur et par référence, tableaux 1D/2D, algorithmes statistiques (somme, moyenne, min/max), recherche séquentielle et dichotomique, tris élémentaires (sélection, insertion) avec invariants et complexité $\mathcal{O}(N^2)$, tables de trace d'exécution, tests et débogage logique, récursivité et problèmes de synthèse.
   - **Parcours B — Programmation en Langage C ISO C99 (`B01` à `B16`)** : Structure d'un programme C et `main`, chaîne de compilation (`cpp`, `cc1`, `as`, `ld`), types primitifs et `sizeof`, conversions implicites et *casts* explicites, `printf` et `scanf` (avec vérification de retour et d'adresse `&`), structures conditionnelles et `switch`, boucles, fonctions et prototypes, pile d'appels (*Call Stack*) et portée des variables, tableaux contigus en mémoire, chaînes de caractères ASCIIZ (`'\0'`, `<string.h>`), pointeurs (`*`, `&`, `NULL`, arithmétique), structures (`struct`, `typedef`, `->`), débogage méthodique, allocation dynamique sur le Tas (`malloc`, `calloc`, `free`) et projets de synthèse.
+- **Parcours C — Concepts du mini-projet ShopFlow (`C01` à `C10`)** : programmation modulaire (`.h`/`.c`, gardes d'inclusion, `types.h`, Makefile), structures imbriquées (`Date`, `Adresse`), saisie sécurisée (`fgets`, `strcspn`, validations), tableaux dynamiques (`malloc`/`realloc`, capacité), allocation à 4 niveaux et libération sans fuite (copie superficielle/profonde, valgrind), règles métier en cascade (remise par paliers, TVA, port, fidélité), machine à états des commandes (`enum`, transitions), recherche/unicité/suppression logique/cohérence du stock, statistiques et palmarès (`qsort`), synthèse ShopFlow. Même pédagogie que les parcours A et B : leçon en 6 étapes, 2 exemples exécutables, erreurs classiques, quiz et 3 exercices par chapitre.
 - **6 Passerelles Méthodologiques Algo $\leftrightarrow$ C** : Navigation libre entre les deux parcours avec 6 passerelles dédiées reliant l'écriture du pseudo-code, la table de trace et la traduction en programme C99.
 - **10 Catégories d'Exercices Déterministes** : QCM conceptuels (`qcm`), détection d'erreurs (`error_spot`), prédiction de sortie (`prediction`), tables de trace interactives (`trace`), remise en ordre d'instructions (`ordering`), complétion de code (`completion`), correction de bugs (`bugfix`), écriture de pseudo-code (`pseudocode`), programmation C (`c_code`) et problèmes de synthèse (`synthesis`).
 - **Compilateur C99 & Interpréteur Pseudo-code Intégrés (Bac à Sable Navigateur)** :
@@ -110,8 +111,12 @@ L'application étant compilée en un bundle statique autonome (`dist/`) avec `ba
 │   │   ├── algoChaptersPart2.ts       # Chapitres A09 à A16 (Algorithmique)
 │   │   ├── cChaptersPart1.ts          # Chapitres B01 à B08 (Langage C99)
 │   │   ├── cChaptersPart2.ts          # Chapitres B09 à B16 (Langage C99)
+│   │   ├── projetChaptersPart1.ts     # Chapitres C01 à C05 (Concepts du projet ShopFlow)
+│   │   ├── projetChaptersPart2.ts     # Chapitres C06 à C10 (Concepts du projet ShopFlow)
+│   │   ├── projetHelpers.ts           # Construction des exemples annotés du Parcours C
 │   │   ├── curriculumIndex.ts         # Index unifié des 32 chapitres, 6 passerelles et modèles Labo
-│   │   └── __tests__/curriculum.test.ts # Validation automatisée des 32 chapitres et solutions de référence
+│   │   ├── __tests__/curriculum.test.ts # Validation automatisée des 42 chapitres et solutions de référence
+│   │   └── __tests__/projet.test.ts   # Exemples, solutions, prédictions et cohérence du Parcours C
 │   ├── services/
 │   │   ├── storageService.ts          # Persistance IndexedDB + localStorage, validation chapitres, Export/Import JSON
 │   │   └── __tests__/storageService.test.ts # Tests unitaires de persistance et règles de progression

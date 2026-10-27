@@ -20,6 +20,10 @@ export default defineConfig({
             './src/data/cChaptersPart1.ts',
             './src/data/cChaptersPart2.ts',
           ],
+          'curriculum-projet': [
+            './src/data/projetChaptersPart1.ts',
+            './src/data/projetChaptersPart2.ts',
+          ],
           'execution-engines': [
             './src/engines/algoEngine.ts',
             './src/engines/c99Engine.ts',

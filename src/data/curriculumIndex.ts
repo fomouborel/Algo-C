@@ -10,6 +10,8 @@ import { ALGO_CHAPTERS_PART1 } from './algoChaptersPart1';
 import { ALGO_CHAPTERS_PART2 } from './algoChaptersPart2';
 import { C_CHAPTERS_PART1 } from './cChaptersPart1';
 import { C_CHAPTERS_PART2 } from './cChaptersPart2';
+import { PROJET_CHAPTERS_PART1 } from './projetChaptersPart1';
+import { PROJET_CHAPTERS_PART2 } from './projetChaptersPart2';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeExample(rawEx: any, defaultTrack: TrackId): AnnotatedExample {
@@ -95,6 +97,7 @@ function normalizeChapter(raw: any): Chapter {
           expectedExitCode: tc.expectedExitCode,
           mustContainConstructs: tc.mustContainConstructs,
           forbiddenConstructs: tc.forbiddenConstructs,
+          forbidMemoryLeaks: tc.forbidMemoryLeaks,
           explanation: tc.explanation ?? tc.label ?? '',
         }))
       : undefined;
@@ -179,14 +182,28 @@ export const C_CHAPTERS: Chapter[] = [
   ...C_CHAPTERS_PART2.map(normalizeChapter),
 ];
 
+// Parcours C — concepts du mini-projet ShopFlow (déjà au format normalisé)
+export const PROJET_CHAPTERS: Chapter[] = [
+  ...PROJET_CHAPTERS_PART1.map(normalizeChapter),
+  ...PROJET_CHAPTERS_PART2.map(normalizeChapter),
+];
+
 export const ALL_CHAPTERS: Chapter[] = [
   ...ALGO_CHAPTERS,
   ...C_CHAPTERS,
+  ...PROJET_CHAPTERS,
 ];
 
 export function getChaptersByTrack(trackId: TrackId): Chapter[] {
+  if (trackId === 'projet') return PROJET_CHAPTERS;
   return trackId === 'algo' ? ALGO_CHAPTERS : C_CHAPTERS;
 }
+
+export const TRACK_LABELS: Record<TrackId, { letter: string; short: string; long: string; range: string }> = {
+  algo: { letter: 'A', short: 'Algorithmique', long: 'Parcours A — Algorithmique', range: 'A01–A16' },
+  c: { letter: 'B', short: 'Langage C', long: 'Parcours B — Langage C99', range: 'B01–B16' },
+  projet: { letter: 'C', short: 'Projet ShopFlow', long: 'Parcours C — Concepts du projet ShopFlow', range: 'C01–C10' },
+};
 
 export function getChapterById(chapterId: string): Chapter | undefined {
   return ALL_CHAPTERS.find((ch) => ch.id === chapterId);
@@ -341,6 +358,71 @@ int main(void) {
     printf("Major : Etudiant #%d avec %d/20\\n",
            promo[meilleurIndice].numero,
            promo[meilleurIndice].note);
+    return 0;
+}`,
+  },
+  {
+    id: 'c-shopflow-catalogue',
+    label: 'C99 — ShopFlow : catalogue dynamique, palmarès qsort & libération',
+    language: 'c',
+    description: 'Tableau dynamique de produits agrandi par realloc, tri d’un tableau de travail avec qsort et libération complète : observez les blocs du Tas dans l’inspecteur.',
+    stdin: '',
+    code: `#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct {
+    char reference[12];
+    int quantiteVendue;
+} Produit;
+
+typedef struct {
+    Produit *produits;
+    int nbProduits;
+    int capaciteProduits;
+} Boutique;
+
+int ajouterProduit(Boutique *b, const char *ref, int vendus) {
+    if (b->nbProduits == b->capaciteProduits) {
+        int cap = (b->capaciteProduits == 0) ? 2 : b->capaciteProduits * 2;
+        Produit *tmp = realloc(b->produits, cap * sizeof(Produit));
+        if (tmp == NULL) return 0;
+        b->produits = tmp;
+        b->capaciteProduits = cap;
+    }
+    strcpy(b->produits[b->nbProduits].reference, ref);
+    b->produits[b->nbProduits].quantiteVendue = vendus;
+    b->nbProduits++;
+    return 1;
+}
+
+int comparerVentes(const void *a, const void *b) {
+    const Produit *x = (const Produit *)a;
+    const Produit *y = (const Produit *)b;
+    return y->quantiteVendue - x->quantiteVendue;
+}
+
+int main(void) {
+    Boutique b = {NULL, 0, 0};
+    ajouterProduit(&b, "PRD-0001", 12);
+    ajouterProduit(&b, "PRD-0004", 30);
+    ajouterProduit(&b, "PRD-0006", 7);
+    ajouterProduit(&b, "PRD-0008", 19);
+    ajouterProduit(&b, "PRD-0002", 25);
+
+    Produit *palmares = malloc(b.nbProduits * sizeof(Produit));
+    if (palmares == NULL) return 1;
+    memcpy(palmares, b.produits, b.nbProduits * sizeof(Produit));
+    qsort(palmares, b.nbProduits, sizeof(Produit), comparerVentes);
+
+    printf("Catalogue : %d produits (capacite %d)\\n", b.nbProduits, b.capaciteProduits);
+    for (int i = 0; i < 3; i++) {
+        printf("%d. %s : %d vendus\\n", i + 1, palmares[i].reference, palmares[i].quantiteVendue);
+    }
+    printf("Ordre du catalogue conserve : %s en premier\\n", b.produits[0].reference);
+
+    free(palmares);
+    free(b.produits);
     return 0;
 }`,
   },

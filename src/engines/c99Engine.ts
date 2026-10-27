@@ -555,7 +555,9 @@ export function compileAndRunC(
       for (let idx = 0; idx < init.elements.length; idx++) {
         const elemExpr = init.elements[idx];
         const elemAddr = alloc.address + idx * elemSize;
-        if (subType.arrayDims.length > 0 && elemExpr.kind === 'init_list') {
+        const isStructElem =
+          subType.arrayDims.length === 0 && subType.base === 'struct' && subType.pointerDepth === 0;
+        if ((subType.arrayDims.length > 0 || isStructElem) && elemExpr.kind === 'init_list') {
           const subAlloc: VarAllocation = {
             name: `${alloc.name}[${idx}]`,
             type: subType,
@@ -738,6 +740,19 @@ export function compileAndRunC(
             type: { base: 'size_t', unsigned: true, pointerDepth: 0, arrayDims: [] },
           };
         }
+        if (expr.expr.kind === 'member') {
+          // sizeof(p.reference) must give the full array field size, not a decayed pointer size
+          const objVal = evalExpr(expr.expr.object);
+          const fieldName = expr.expr.field;
+          const sDef = objVal.type.structName ? ast.structs.get(objVal.type.structName) : undefined;
+          const field = sDef?.fields.find((f) => f.name === fieldName);
+          if (field) {
+            return {
+              value: field.size,
+              type: { base: 'size_t', unsigned: true, pointerDepth: 0, arrayDims: [] },
+            };
+          }
+        }
         const ev = evalExpr(expr.expr);
         return {
           value: getTypeByteSize(ev.type, ast.structs),
@@ -746,6 +761,31 @@ export function compileAndRunC(
       }
 
       case 'cast': {
+        // C99 compound literal: (Date){12, 3, 2026} builds a temporary struct on the stack
+        if (
+          expr.expr.kind === 'init_list' &&
+          expr.targetType.base === 'struct' &&
+          expr.targetType.pointerDepth === 0 &&
+          expr.targetType.arrayDims.length === 0
+        ) {
+          const litSize = getTypeByteSize(expr.targetType, ast.structs);
+          stackPtr = align4(stackPtr);
+          const litAddr = stackPtr;
+          stackPtr += align4(litSize);
+          initializeAllocation(
+            {
+              name: '(compound literal)',
+              type: expr.targetType,
+              address: litAddr,
+              sizeBytes: litSize,
+              initialized: true,
+              scopeName: 'temp',
+            },
+            expr.expr,
+            expr.line
+          );
+          return { value: litAddr, type: expr.targetType, lvalueAddress: litAddr };
+        }
         const inner = evalExpr(expr.expr);
         if (
           expr.targetType.pointerDepth === 0 &&
@@ -1489,6 +1529,55 @@ export function compileAndRunC(
     argExprs: ASTExpr[],
     line: number
   ): EvalValue {
+    // <stdlib.h> qsort(base, n, size, cmp) : the comparator is passed by name
+    // (or &name), so it must be resolved before the generic argument evaluation.
+    if (callee === 'qsort') {
+      const cmpExpr = argExprs[3];
+      const cmpName =
+        cmpExpr?.kind === 'ident'
+          ? cmpExpr.name
+          : cmpExpr?.kind === 'unary' && cmpExpr.op === '&' && cmpExpr.operand.kind === 'ident'
+          ? cmpExpr.operand.name
+          : '';
+      const cmpDef = ast.functions.get(cmpName);
+      if (!cmpDef || !cmpDef.body || cmpDef.params.length !== 2) {
+        throw new CRuntimeTrap(
+          line,
+          'C-RUN-QSORT-CMP',
+          'Fonction de comparaison invalide passée à qsort()',
+          `Ligne ${line} : Le 4e argument de qsort doit être le nom d'une fonction de comparaison définie dans votre programme, de la forme int comparer(const void *a, const void *b).`
+        );
+      }
+      const base = Math.trunc(evalExpr(argExprs[0]).value);
+      const count = Math.trunc(evalExpr(argExprs[1]).value);
+      const size = Math.trunc(evalExpr(argExprs[2]).value);
+      if (count <= 1 || size <= 0) return { value: 0, type: { base: 'void', pointerDepth: 0, arrayDims: [] } };
+      checkAddressValid(base, count * size, true, line);
+      // Scratch slot on the heap edge for element swaps (stable insertion sort).
+      const tmp = new Uint8Array(size);
+      const scratch = align4(heapPtr);
+      const lit = (v: number): ASTExpr => ({ kind: 'int_lit', value: v, line });
+      for (let i = 1; i < count; i++) {
+        for (let b = 0; b < size; b++) tmp[b] = memBytes[base + i * size + b];
+        for (let b = 0; b < size; b++) {
+          memBytes[scratch + b] = tmp[b];
+          shadowInit[scratch + b] = 1;
+        }
+        let j = i - 1;
+        while (j >= 0) {
+          const res = invokeCFunction(cmpName, [lit(base + j * size), lit(scratch)], line);
+          if (res.value <= 0) break;
+          for (let b = 0; b < size; b++) memBytes[base + (j + 1) * size + b] = memBytes[base + j * size + b];
+          j--;
+        }
+        for (let b = 0; b < size; b++) {
+          memBytes[base + (j + 1) * size + b] = tmp[b];
+          shadowInit[base + (j + 1) * size + b] = 1;
+        }
+      }
+      return { value: 0, type: { base: 'void', pointerDepth: 0, arrayDims: [] } };
+    }
+
     const evaledArgs = argExprs.map((a) => evalExpr(a));
     const intRet = (v: number): EvalValue => ({
       value: Math.trunc(v),
@@ -1765,6 +1854,13 @@ export function compileAndRunC(
       const ch = String.fromCharCode(Math.trunc(evaledArgs[1]?.value ?? 0) & 0xff);
       const idx = s.indexOf(ch);
       return ptrRet(idx === -1 ? 0 : addr + idx, 'char');
+    }
+    if (callee === 'strcspn') {
+      const s = readCString(evaledArgs[0]?.value ?? 0, line);
+      const reject = readCString(evaledArgs[1]?.value ?? 0, line);
+      let idx = 0;
+      while (idx < s.length && !reject.includes(s[idx])) idx++;
+      return intRet(idx);
     }
     if (callee === 'strstr') {
       const addr = evaledArgs[0]?.value ?? 0;
@@ -2470,6 +2566,14 @@ export function runCCodeTestSuite(
           failureReason = `Votre programme C doit obligatoirement utiliser « ${req} » pour valider cette compétence.`;
           break;
         }
+      }
+    }
+
+    if (passed && tc.forbidMemoryLeaks) {
+      const leak = run.diagnostics.find((d) => d.code === 'C-WARN-MEM-LEAK');
+      if (leak) {
+        passed = false;
+        failureReason = `${leak.pedagogicalTitle} : chaque malloc/realloc doit être libéré par free() avant la fin du programme.`;
       }
     }
 

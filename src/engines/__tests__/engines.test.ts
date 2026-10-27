@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compileAndRunC } from '../c99Engine';
+import { compileAndRunC, runCCodeTestSuite } from '../c99Engine';
 import { compileAndRunPseudoCode } from '../algoEngine';
 import {
   createInitialProgressState,
@@ -255,5 +255,90 @@ describe('StorageService — Export and Import Validation', () => {
 
     const bad = validateAndImportProgressJson('{"schemaVersion": 999}');
     expect(bad.valid).toBe(false);
+  });
+});
+
+describe('C99Engine — features used by the ShopFlow track (Parcours C)', () => {
+  it('honours #ifndef include guards and #ifdef / #else', () => {
+    const res = compileAndRunC(`
+      #include <stdio.h>
+      #ifndef TYPES_H
+      #define TYPES_H
+      typedef struct { int numero; float montant; } Commande;
+      #endif
+      #ifndef TYPES_H
+      typedef struct { int numero; } Commande;
+      #endif
+      #ifdef DEBUG
+      #define MODE 1
+      #else
+      #define MODE 2
+      #endif
+      int main(void) {
+        Commande c = {7, 1.5f};
+        printf("%d %.1f %d\\n", c.numero, c.montant, MODE);
+        return 0;
+      }
+    `);
+    expect(res.compileSuccess).toBe(true);
+    expect(res.stdout).toBe('7 1.5 2\n');
+  });
+
+  it('initialises arrays of structs, compound literals and sizeof of array fields', () => {
+    const res = compileAndRunC(`
+      #include <stdio.h>
+      typedef struct { int jour; int mois; int annee; } Date;
+      typedef struct { char reference[12]; char designation[60]; } Produit;
+      int main(void) {
+        Produit cat[2] = {{"PRD-0001", "Clavier"}, {"PRD-0007", "Hub USB-C"}};
+        Date d;
+        d = (Date){12, 3, 2026};
+        printf("%s %s %d/%d/%d %d\\n", cat[1].reference, cat[1].designation,
+               d.jour, d.mois, d.annee, (int)sizeof(cat[0].designation));
+        return 0;
+      }
+    `);
+    expect(res.executionSuccess).toBe(true);
+    expect(res.stdout).toBe('PRD-0007 Hub USB-C 12/3/2026 60\n');
+  });
+
+  it('supports qsort with a user comparator, strcspn and fgets(stdin)', () => {
+    const res = compileAndRunC(
+      `
+      #include <stdio.h>
+      #include <stdlib.h>
+      #include <string.h>
+      int cmp(const void *a, const void *b) {
+        return *(const int *)b - *(const int *)a;
+      }
+      int main(void) {
+        int t[5] = {3, 9, 1, 7, 5};
+        qsort(t, 5, sizeof(int), cmp);
+        char ligne[40];
+        fgets(ligne, sizeof(ligne), stdin);
+        ligne[strcspn(ligne, "\\n")] = '\\0';
+        printf("%d %d %d [%s]\\n", t[0], t[2], t[4], ligne);
+        return 0;
+      }
+    `,
+      '12 rue de la Paix\n'
+    );
+    expect(res.executionSuccess).toBe(true);
+    expect(res.stdout).toBe('9 5 1 [12 rue de la Paix]\n');
+  });
+
+  it('fails a test case flagged forbidMemoryLeaks when a block is not freed', () => {
+    const code = `
+      #include <stdio.h>
+      #include <stdlib.h>
+      int main(void) {
+        int *p = malloc(4 * sizeof(int));
+        printf("ok\\n");
+        return 0;
+      }
+    `;
+    const tc = { id: 't', label: 'fuite', category: 'normal' as const, stdin: '', expectedStdout: 'ok', explanation: '' };
+    expect(runCCodeTestSuite(code, [tc]).allPassed).toBe(true);
+    expect(runCCodeTestSuite(code, [{ ...tc, forbidMemoryLeaks: true }]).allPassed).toBe(false);
   });
 });
