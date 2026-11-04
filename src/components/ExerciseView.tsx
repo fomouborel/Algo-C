@@ -12,6 +12,7 @@ import {
   Lightbulb,
   Play,
   ShieldCheck,
+  ShoppingCart,
   Terminal,
   XCircle,
 } from 'lucide-react';
@@ -504,6 +505,31 @@ export const ExerciseView: React.FC<ExerciseViewProps> = ({
         <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 text-sm text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-wrap overflow-x-auto">
           <RichText text={exercise.statement} />
         </div>
+
+        {exercise.projectLink && (
+          <div className="flex items-start gap-2.5 p-3.5 rounded-xl border border-orange-200 dark:border-orange-900/60 bg-orange-50/60 dark:bg-orange-950/20 text-xs sm:text-sm text-orange-900 dark:text-orange-200">
+            <ShoppingCart className="w-4 h-4 shrink-0 mt-0.5" />
+            <div>
+              <strong>Lien avec ShopFlow : </strong>
+              <RichText text={exercise.projectLink} />
+            </div>
+          </div>
+        )}
+
+        {exercise.guidedSteps && exercise.guidedSteps.length > 0 && (
+          <div className="p-4 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/20 space-y-2">
+            <div className="text-xs font-bold uppercase tracking-wider text-rose-700 dark:text-rose-300">
+              Démarche guidée
+            </div>
+            <ol className="list-decimal pl-5 space-y-1.5 text-sm text-slate-800 dark:text-slate-200">
+              {exercise.guidedSteps.map((step, idx) => (
+                <li key={idx} className="leading-relaxed whitespace-pre-wrap">
+                  <RichText text={step} />
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
 
         {/* Cross-track Bridge Banner if available */}
         {(resolvedBridgeExercise || resolvedBridgeChapter) && (

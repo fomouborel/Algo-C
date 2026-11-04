@@ -195,6 +195,7 @@ export function compileAndRunC(
 
   let stdout = '';
   let stderr = '';
+  let evaluatingAddressOf = false;
   let instructionsExecuted = 0;
   let terminatedByTimeout = false;
   let prngState = 123456789;
@@ -804,6 +805,9 @@ export function compileAndRunC(
       }
 
       case 'index': {
+        // &t[i] only computes an address: no read, and the one-past-the-end index is legal
+        const addressOnly = evaluatingAddressOf;
+        evaluatingAddressOf = false;
         const arrVal = evalExpr(expr.array);
         const idxVal = evalExpr(expr.index);
         const index = Math.trunc(idxVal.value);
@@ -826,7 +830,7 @@ export function compileAndRunC(
 
         // Bounds check if baseAddr corresponds to a known array
         const knownBounds = arrayBoundsByBase.get(baseAddr);
-        if (knownBounds && (index < 0 || index >= knownBounds.length)) {
+        if (knownBounds && (index < 0 || index > knownBounds.length || (index === knownBounds.length && !addressOnly))) {
           throw new CRuntimeTrap(
             expr.line,
             'C-RUN-ARRAY-OOB',
@@ -838,7 +842,7 @@ export function compileAndRunC(
         }
 
         const elemAddr = baseAddr + index * elemSize;
-        if (elemType.arrayDims.length > 0 || (elemType.base === 'struct' && elemType.pointerDepth === 0)) {
+        if (addressOnly || elemType.arrayDims.length > 0 || (elemType.base === 'struct' && elemType.pointerDepth === 0)) {
           return {
             value: elemAddr,
             type: elemType,
@@ -914,7 +918,9 @@ export function compileAndRunC(
 
       case 'unary': {
         if (expr.op === '&') {
+          evaluatingAddressOf = expr.operand.kind === 'index';
           const target = evalExpr(expr.operand);
+          evaluatingAddressOf = false;
           if (target.lvalueAddress === undefined) {
             throw new CRuntimeTrap(
               expr.line,
@@ -1605,7 +1611,12 @@ export function compileAndRunC(
       if (evaledArgs.length < 2) return intRet(0);
       const fmt = readCString(evaledArgs[1].value, line);
       const text = formatPrintf(fmt, evaledArgs.slice(2), line);
-      stdout += text;
+      // fprintf(stderr, ...) goes to the error stream (stderr is the macro value 2)
+      if (Math.trunc(evaledArgs[0].value) === 2) {
+        stderr += text;
+      } else {
+        stdout += text;
+      }
       return intRet(text.length);
     }
 
@@ -1792,6 +1803,60 @@ export function compileAndRunC(
       const s = readCString(evaledArgs[0]?.value ?? 0, line).trim();
       const n = parseInt(s, 10);
       return intRet(Number.isNaN(n) ? 0 : n);
+    }
+    if (callee === 'strtol' || callee === 'strtoul' || callee === 'strtof' || callee === 'strtod') {
+      // Parses like the C library and reports where parsing stopped through *endptr
+      const startAddr = evaledArgs[0]?.value ?? 0;
+      const endPtrAddr = Math.trunc(evaledArgs[1]?.value ?? 0);
+      const s = readCString(startAddr, line);
+      let pos = 0;
+      while (pos < s.length && ' \t\n\r\f\v'.includes(s[pos])) pos++;
+      let result = 0;
+      let consumed = 0;
+      if (callee === 'strtof' || callee === 'strtod') {
+        const m = s.slice(pos).match(/^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?/);
+        if (m) {
+          result = parseFloat(m[0]);
+          consumed = pos + m[0].length;
+        }
+      } else {
+        let base = Math.trunc(evaledArgs[2]?.value ?? 10);
+        let p = pos;
+        let sign = 1;
+        if (s[p] === '+' || s[p] === '-') {
+          if (s[p] === '-') sign = -1;
+          p++;
+        }
+        if ((base === 0 || base === 16) && s[p] === '0' && (s[p + 1] === 'x' || s[p + 1] === 'X') && /[0-9a-fA-F]/.test(s[p + 2] ?? '')) {
+          p += 2;
+          base = 16;
+        } else if (base === 0) {
+          base = s[p] === '0' ? 8 : 10;
+        }
+        const digitsStart = p;
+        while (p < s.length) {
+          const d = parseInt(s[p], 36);
+          if (Number.isNaN(d) || d >= base) break;
+          result = result * base + d;
+          p++;
+        }
+        if (p > digitsStart) {
+          result = sign * result;
+          consumed = p;
+        } else {
+          result = 0;
+        }
+      }
+      if (endPtrAddr !== 0) {
+        // No digits read: *endptr receives the start of the string (C standard)
+        writeScalarToMemory(
+          endPtrAddr,
+          { base: 'char', pointerDepth: 1, arrayDims: [] },
+          startAddr + consumed,
+          line
+        );
+      }
+      return callee === 'strtof' || callee === 'strtod' ? dblRet(result) : intRet(result);
     }
     if (callee === 'atof') {
       const s = readCString(evaledArgs[0]?.value ?? 0, line).trim();
@@ -2498,7 +2563,7 @@ export function compileAndRunC(
         pedagogicalTitle: err.title,
         pedagogicalExplanation: err.explanation,
       });
-      stderr = `${err.title}\n${err.explanation}`;
+      stderr += `${stderr && !stderr.endsWith('\n') ? '\n' : ''}${err.title}\n${err.explanation}`;
     } else {
       const msg = err instanceof Error ? err.message : String(err);
       diagnostics.push({
@@ -2511,7 +2576,7 @@ export function compileAndRunC(
         pedagogicalTitle: "Erreur d'exécution",
         pedagogicalExplanation: msg,
       });
-      stderr = msg;
+      stderr += `${stderr && !stderr.endsWith('\n') ? '\n' : ''}${msg}`;
     }
 
     return {

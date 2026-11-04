@@ -12,6 +12,7 @@ import { C_CHAPTERS_PART1 } from './cChaptersPart1';
 import { C_CHAPTERS_PART2 } from './cChaptersPart2';
 import { PROJET_CHAPTERS_PART1 } from './projetChaptersPart1';
 import { PROJET_CHAPTERS_PART2 } from './projetChaptersPart2';
+import { DEFI_CHAPTERS_DATA } from './defiChapters';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeExample(rawEx: any, defaultTrack: TrackId): AnnotatedExample {
@@ -136,6 +137,8 @@ function normalizeChapter(raw: any): Chapter {
       testCases,
       bridgePseudoStarter: ex.bridgePseudoStarter,
       bridgePseudoSolution: ex.bridgePseudoSolution,
+      projectLink: ex.projectLink,
+      guidedSteps: ex.guidedSteps,
       hints,
       detailedExplanation: ex.detailedExplanation ?? ex.explanation ?? '',
     };
@@ -167,6 +170,7 @@ function normalizeChapter(raw: any): Chapter {
       commonMistakes,
       summary,
       comprehensionQuestions: raw.lesson.comprehensionQuestions ?? [],
+      deepDive: raw.lesson.deepDive,
     },
     exercises,
   };
@@ -188,13 +192,18 @@ export const PROJET_CHAPTERS: Chapter[] = [
   ...PROJET_CHAPTERS_PART2.map(normalizeChapter),
 ];
 
+// Parcours D — défis d'approfondissement liés au projet ShopFlow
+export const DEFI_CHAPTERS: Chapter[] = DEFI_CHAPTERS_DATA.map(normalizeChapter);
+
 export const ALL_CHAPTERS: Chapter[] = [
   ...ALGO_CHAPTERS,
   ...C_CHAPTERS,
   ...PROJET_CHAPTERS,
+  ...DEFI_CHAPTERS,
 ];
 
 export function getChaptersByTrack(trackId: TrackId): Chapter[] {
+  if (trackId === 'defi') return DEFI_CHAPTERS;
   if (trackId === 'projet') return PROJET_CHAPTERS;
   return trackId === 'algo' ? ALGO_CHAPTERS : C_CHAPTERS;
 }
@@ -203,6 +212,7 @@ export const TRACK_LABELS: Record<TrackId, { letter: string; short: string; long
   algo: { letter: 'A', short: 'Algorithmique', long: 'Parcours A — Algorithmique', range: 'A01–A16' },
   c: { letter: 'B', short: 'Langage C', long: 'Parcours B — Langage C99', range: 'B01–B16' },
   projet: { letter: 'C', short: 'Projet ShopFlow', long: 'Parcours C — Concepts du projet ShopFlow', range: 'C01–C10' },
+  defi: { letter: 'D', short: 'Défis ShopFlow', long: 'Parcours D — Défis d’approfondissement ShopFlow', range: 'D01–D04' },
 };
 
 export function getChapterById(chapterId: string): Chapter | undefined {

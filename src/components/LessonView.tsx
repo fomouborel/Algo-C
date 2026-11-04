@@ -10,6 +10,7 @@ import {
   Languages,
   Lightbulb,
   ListChecks,
+  Microscope,
   Play,
   Sparkles,
   Target,
@@ -293,7 +294,9 @@ export const LessonView: React.FC<LessonViewProps> = ({
                 ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300'
                 : chapter.trackId === 'c'
                 ? 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300'
-                : 'bg-orange-100 dark:bg-orange-950 text-orange-800 dark:text-orange-300'
+                : chapter.trackId === 'projet'
+                ? 'bg-orange-100 dark:bg-orange-950 text-orange-800 dark:text-orange-300'
+                : 'bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300'
             }`}
           >
             Parcours {TRACK_LABELS[chapter.trackId].letter} • {TRACK_LABELS[chapter.trackId].short}{' '}
@@ -430,6 +433,36 @@ export const LessonView: React.FC<LessonViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* 1 bis. Deep dive (Parcours D) */}
+      {chapter.lesson.deepDive && chapter.lesson.deepDive.length > 0 && (
+        <div className="rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-white dark:bg-slate-900 p-6 shadow-sm space-y-4">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Microscope className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+            <span>Pour aller plus loin : explication approfondie</span>
+          </h2>
+          <div className="space-y-4">
+            {chapter.lesson.deepDive.map((section, idx) => (
+              <div
+                key={section.title}
+                className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-4 space-y-2"
+              >
+                <h3 className="text-sm font-bold text-rose-700 dark:text-rose-300">
+                  {idx + 1}. {section.title}
+                </h3>
+                <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                  <RichText text={section.content} />
+                </div>
+                {section.code && (
+                  <pre className="text-xs font-mono bg-slate-900 text-slate-100 rounded-lg p-3 overflow-x-auto whitespace-pre">
+                    {section.code}
+                  </pre>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 2. Bilingual Technical Vocabulary Table */}
       <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">

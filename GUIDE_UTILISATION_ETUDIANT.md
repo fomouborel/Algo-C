@@ -118,6 +118,19 @@ Le **Parcours C** (`C01` à `C10`, entrée « Parcours C — Projet ShopFlow » 
 
 Prérequis conseillés : `B11` (chaînes), `B12` (pointeurs), `B13` (structures) et `B15` (mémoire). Le bac à sable ne compile qu'un seul fichier : les modules y sont simulés par des sections commentées `/* ===== produit.h ===== */`.
 
+### 4.1 ter. Parcours D — Défis d'approfondissement ShopFlow
+Le **Parcours D** (`D01` à `D04`, entrée « Parcours D — Défis ShopFlow » du menu) se fait après le Parcours C. Il reprend la même pédagogie avec trois ajouts :
+- dans chaque leçon, une section **« Pour aller plus loin : explication approfondie »** placée après l'explication simple ;
+- dans chaque exercice, un encadré **« Lien avec ShopFlow »** (où la compétence sert dans le projet) et une **« Démarche guidée »** pas à pas ;
+- 6 à 7 exercices par chapitre, dont plusieurs corrections de code réel du projet.
+
+| Chapitre | Défi |
+| :---: | :--- |
+| `D01` | `strstr`, `strcmp`, `strtol`, `strtof` : rôles, valeurs de retour, différences, saisie robuste |
+| `D02` | Allocation dynamique et `realloc` : insertion, suppression, compactage, pointeurs invalidés |
+| `D03` | Compilation d'un projet multi-fichiers, Makefile, tests unitaires et tests de scénario |
+| `D04` | Repérer les erreurs : méthode, traces sur `stderr`, `assert`, gdb, valgrind, bugs classiques |
+
 ### 4.2. Explorer la liste des chapitres (`Parcours A` ou `Parcours B`)
 En cliquant sur **Parcours A** ou **Parcours B** dans le menu latéral :
 - Vous pouvez **filtrer les chapitres** grâce aux boutons en haut à droite :

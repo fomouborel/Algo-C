@@ -25,6 +25,7 @@ import {
   C_CHAPTERS,
   LAB_TEMPLATES,
   PROJET_CHAPTERS,
+  DEFI_CHAPTERS,
 } from '../data/curriculumIndex';
 import { executeCInSandbox, executePseudoInSandbox } from '../engines/workerClient';
 import {
@@ -351,6 +352,7 @@ export const ProgressReportView: React.FC<ProgressReportViewProps> = ({
   ).length;
   const cValCount = C_CHAPTERS.filter((c) => progress.chapters[c.id]?.validated).length;
   const projetValCount = PROJET_CHAPTERS.filter((c) => progress.chapters[c.id]?.validated).length;
+  const defiValCount = DEFI_CHAPTERS.filter((c) => progress.chapters[c.id]?.validated).length;
 
   return (
     <div className="space-y-6">
@@ -369,11 +371,11 @@ export const ProgressReportView: React.FC<ProgressReportViewProps> = ({
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
           <div className="text-xs text-slate-500 mb-1">Chapitres validés au total</div>
           <div className="text-3xl font-bold text-slate-900 dark:text-white">
-            {algoValCount + cValCount + projetValCount} / {ALL_CHAPTERS.length}
+            {algoValCount + cValCount + projetValCount + defiValCount} / {ALL_CHAPTERS.length}
           </div>
           <div className="text-xs text-slate-500 mt-1">
             Algo : {algoValCount}/16 • Langage C : {cValCount}/16 • Projet : {projetValCount}/
-            {PROJET_CHAPTERS.length}
+            {PROJET_CHAPTERS.length} • Défis : {defiValCount}/{DEFI_CHAPTERS.length}
           </div>
         </div>
 
@@ -415,6 +417,11 @@ export const ProgressReportView: React.FC<ProgressReportViewProps> = ({
             title: 'Parcours C — Concepts du projet ShopFlow (C01 à C10)',
             chapters: PROJET_CHAPTERS,
             accent: 'orange',
+          },
+          {
+            title: 'Parcours D — Défis d’approfondissement ShopFlow (D01 à D04)',
+            chapters: DEFI_CHAPTERS,
+            accent: 'rose',
           },
         ].map((group) => (
           <div

@@ -14,12 +14,14 @@ import {
   Search,
   ShoppingCart,
   Sparkles,
+  Swords,
   Terminal,
 } from 'lucide-react';
 import {
   ALGO_CHAPTERS,
   C_CHAPTERS,
   PROJET_CHAPTERS,
+  DEFI_CHAPTERS,
   ALL_CHAPTERS,
   getBridgePairs,
   getChapterById,
@@ -49,7 +51,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const algoValidated = ALGO_CHAPTERS.filter((c) => progress.chapters[c.id]?.validated).length;
   const cValidated = C_CHAPTERS.filter((c) => progress.chapters[c.id]?.validated).length;
   const projetValidated = PROJET_CHAPTERS.filter((c) => progress.chapters[c.id]?.validated).length;
-  const totalValidated = algoValidated + cValidated + projetValidated;
+  const defiValidated = DEFI_CHAPTERS.filter((c) => progress.chapters[c.id]?.validated).length;
+  const totalValidated = algoValidated + cValidated + projetValidated + defiValidated;
 
   const allExercises = ALL_CHAPTERS.flatMap((c) => c.exercises);
   const solvedExercises = allExercises.filter((ex) => progress.exercises[ex.id]?.passed).length;
@@ -63,6 +66,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     C_CHAPTERS.find((c) => !progress.chapters[c.id]?.validated) ?? C_CHAPTERS[0];
   const nextProjetChapter =
     PROJET_CHAPTERS.find((c) => !progress.chapters[c.id]?.validated) ?? PROJET_CHAPTERS[0];
+  const nextDefiChapter =
+    DEFI_CHAPTERS.find((c) => !progress.chapters[c.id]?.validated) ?? DEFI_CHAPTERS[0];
 
   return (
     <div className="space-y-6">
@@ -113,7 +118,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
           <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
             <span>Chapitres validés</span>
@@ -196,6 +201,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             {projetValidated} / {PROJET_CHAPTERS.length} chapitres validés
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
+          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+            <span>Parcours D — Défis ShopFlow</span>
+            <Swords className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+          </div>
+          <div className="text-2xl font-bold text-slate-900 dark:text-white">
+            {Math.round((defiValidated / DEFI_CHAPTERS.length) * 100)}%
+          </div>
+          <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 mt-2 overflow-hidden">
+            <div
+              className="h-full bg-rose-500 transition-all"
+              style={{ width: `${(defiValidated / DEFI_CHAPTERS.length) * 100}%` }}
+            />
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            {defiValidated} / {DEFI_CHAPTERS.length} chapitres validés
           </p>
         </div>
       </div>
@@ -354,6 +378,58 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-medium transition cursor-pointer"
             >
               <span>Voir les {PROJET_CHAPTERS.length} chapitres du projet</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Track D */}
+        <div className="lg:col-span-2 rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-white dark:bg-slate-900 p-6 shadow-sm flex flex-col justify-between">
+          <div>
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300 text-xs font-bold">
+                <Swords className="w-4 h-4" />
+                PARCOURS D — DÉFIS D’APPROFONDISSEMENT SHOPFLOW (D01 à D{String(DEFI_CHAPTERS.length).padStart(2, '0')})
+              </span>
+              <span className="text-xs text-slate-500">À aborder une fois le Parcours C terminé</span>
+            </div>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+              Se mettre au défi sur le code réel du projet
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+              Différences entre <code>strstr</code>, <code>strcmp</code>, <code>strtol</code> et{' '}
+              <code>strtof</code>, manipulation avancée de <code>realloc</code> (insertion, suppression,
+              compactage), compilation multi-fichiers et tests, chasse aux bugs. Chaque leçon ajoute une
+              explication approfondie et chaque exercice une démarche guidée reliée au code de ShopFlow.
+            </p>
+
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 mb-4">
+              <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
+                Prochain défi recommandé (Parcours D) :
+              </div>
+              <div className="font-bold text-sm text-slate-900 dark:text-white">
+                {nextDefiChapter.id} — {nextDefiChapter.title}
+              </div>
+              <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                {nextDefiChapter.subtitle}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 pt-2">
+            <button
+              type="button"
+              onClick={() => onOpenChapterLesson(nextDefiChapter.id)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs sm:text-sm font-semibold transition cursor-pointer"
+            >
+              <span>Relever le défi {nextDefiChapter.id}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => onSelectTrack('defi')}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-medium transition cursor-pointer"
+            >
+              <span>Voir les {DEFI_CHAPTERS.length} défis</span>
             </button>
           </div>
         </div>
@@ -717,6 +793,51 @@ export const TracksOverviewView: React.FC<TracksOverviewViewProps> = ({
             })}
           </div>
         </div>
+
+        <div className="lg:col-span-2 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-white dark:bg-slate-900 p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Swords className="w-4 h-4 text-rose-600" />
+              <span>Sommaire Parcours D — Défis ShopFlow ({DEFI_CHAPTERS.length} chapitres)</span>
+            </h3>
+            <button
+              type="button"
+              onClick={() => onSelectTrack('defi')}
+              className="text-xs font-semibold text-rose-600 hover:underline cursor-pointer"
+            >
+              Ouvrir le parcours →
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 divide-y md:divide-y-0 divide-slate-100 dark:divide-slate-800 text-xs">
+            {DEFI_CHAPTERS.map((ch) => {
+              const isVal = Boolean(progress.chapters[ch.id]?.validated);
+              return (
+                <div
+                  key={ch.id}
+                  className="py-2 flex items-center justify-between gap-2 hover:bg-slate-50 dark:hover:bg-slate-800/40 px-2 rounded"
+                >
+                  <button
+                    type="button"
+                    onClick={() => onOpenChapterLesson(ch.id)}
+                    className="text-left font-medium text-slate-800 dark:text-slate-200 hover:text-rose-600 cursor-pointer"
+                  >
+                    <strong className="font-mono text-rose-600 dark:text-rose-400 mr-1.5">
+                      {ch.id}
+                    </strong>
+                    {ch.title}
+                  </button>
+                  {isVal ? (
+                    <span className="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 text-[10px] font-semibold">
+                      Validé
+                    </span>
+                  ) : (
+                    <span className="text-slate-400">{ch.exercises.length} ex.</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -809,14 +930,34 @@ export const ChapterListView: React.FC<ChapterListViewProps> = ({
             >
               Parcours C — Projet ShopFlow (C01–C10)
             </button>
+            <button
+              type="button"
+              onClick={() => onSwitchTrack('defi')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                trackId === 'defi'
+                  ? 'bg-rose-600 text-white shadow-sm'
+                  : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:opacity-90'
+              }`}
+            >
+              Parcours D — Défis ShopFlow (D01–D04)
+            </button>
           </div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
             {trackId === 'algo'
               ? 'Parcours A : Fondamentaux de l’Algorithmique & du Pseudo-code'
               : trackId === 'c'
               ? 'Parcours B : Programmation Structurée en Langage C (C99)'
-              : 'Parcours C : Les concepts du mini-projet ShopFlow'}
+              : trackId === 'projet'
+              ? 'Parcours C : Les concepts du mini-projet ShopFlow'
+              : 'Parcours D : Défis d’approfondissement sur le projet ShopFlow'}
           </h1>
+          {trackId === 'defi' && (
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-3xl">
+              Pour aller plus loin que le Parcours C : chaque leçon contient une explication simple puis une
+              section « Pour aller plus loin », et chaque exercice une démarche guidée et son lien avec le
+              code de ShopFlow. Prérequis conseillés : C03, C04, C05 et C10.
+            </p>
+          )}
           {trackId === 'projet' && (
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-3xl">
               Chaque chapitre isole une notion indispensable au mini-projet « ShopFlow — Gestion des commandes
@@ -893,7 +1034,9 @@ export const ChapterListView: React.FC<ChapterListViewProps> = ({
                           ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300'
                           : trackId === 'c'
                           ? 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300'
-                          : 'bg-orange-100 dark:bg-orange-950 text-orange-800 dark:text-orange-300'
+                          : trackId === 'projet'
+                          ? 'bg-orange-100 dark:bg-orange-950 text-orange-800 dark:text-orange-300'
+                          : 'bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300'
                       }`}
                     >
                       Chapitre {chapter.id}
