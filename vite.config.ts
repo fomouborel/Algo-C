@@ -23,6 +23,7 @@ export default defineConfig({
           'curriculum-projet': [
             './src/data/projetChaptersPart1.ts',
             './src/data/projetChaptersPart2.ts',
+            './src/data/defiChapters.ts',
           ],
           'execution-engines': [
             './src/engines/algoEngine.ts',

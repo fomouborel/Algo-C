@@ -3,6 +3,7 @@ import {
   ALGO_CHAPTERS,
   C_CHAPTERS,
   PROJET_CHAPTERS,
+  DEFI_CHAPTERS,
   ALL_CHAPTERS,
   LAB_TEMPLATES,
   getBridgePairs,
@@ -10,12 +11,13 @@ import {
 import { runPseudoCodeTestSuite, compileAndRunPseudoCode } from '../../engines/algoEngine';
 import { runCCodeTestSuite, compileAndRunC } from '../../engines/c99Engine';
 
-describe('Validation intégrale du programme pédagogique (A01-A16, B01-B16 et C01-C10)', () => {
-  it('contient 16 chapitres Algorithmique (A01..A16), 16 chapitres C (B01..B16) et 10 chapitres Projet (C01..C10)', () => {
+describe('Validation intégrale du programme pédagogique (A01-A16, B01-B16, C01-C10 et D01-D04)', () => {
+  it('contient 16 chapitres Algorithmique, 16 chapitres C, 10 chapitres Projet et 4 chapitres Défis', () => {
     expect(ALGO_CHAPTERS.length).toBe(16);
     expect(C_CHAPTERS.length).toBe(16);
     expect(PROJET_CHAPTERS.length).toBe(10);
-    expect(ALL_CHAPTERS.length).toBe(42);
+    expect(DEFI_CHAPTERS.length).toBe(4);
+    expect(ALL_CHAPTERS.length).toBe(46);
 
     for (let i = 1; i <= 10; i++) {
       expect(PROJET_CHAPTERS[i - 1].id).toBe(`C${String(i).padStart(2, '0')}`);

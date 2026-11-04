@@ -488,7 +488,9 @@ export function validateAndImportProgressJson(rawJson: string): {
             ? locRaw.screen
             : 'dashboard',
         trackId:
-          locRaw.trackId === 'c' || locRaw.trackId === 'projet' ? locRaw.trackId : 'algo',
+          locRaw.trackId === 'c' || locRaw.trackId === 'projet' || locRaw.trackId === 'defi'
+            ? locRaw.trackId
+            : 'algo',
         chapterId:
           typeof locRaw.chapterId === 'string' && locRaw.chapterId.length > 0
             ? locRaw.chapterId

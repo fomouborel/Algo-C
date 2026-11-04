@@ -1,10 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { PROJET_CHAPTERS } from '../curriculumIndex';
+import { DEFI_CHAPTERS, PROJET_CHAPTERS } from '../curriculumIndex';
 import { compileAndRunC, runCCodeTestSuite } from '../../engines/c99Engine';
 
-describe('Parcours C — concepts du projet ShopFlow', () => {
+const TRACKS = [
+  { nom: 'Parcours C — concepts du projet ShopFlow', trackId: 'projet', chapitres: PROJET_CHAPTERS },
+  { nom: 'Parcours D — défis d’approfondissement ShopFlow', trackId: 'defi', chapitres: DEFI_CHAPTERS },
+];
+
+describe.each(TRACKS)('$nom', ({ trackId, chapitres }) => {
   it('chaque exemple de leçon compile, s’exécute sans fuite et produit la sortie annoncée', () => {
-    for (const ch of PROJET_CHAPTERS) {
+    for (const ch of chapitres) {
       for (const ex of [ch.lesson.simpleExample, ch.lesson.intermediateExample]) {
         const res = compileAndRunC(ex.code, ex.stdin ?? '');
         const label = `${ch.id} — ${ex.title}`;
@@ -17,7 +22,7 @@ describe('Parcours C — concepts du projet ShopFlow', () => {
   });
 
   it('chaque solution de référence passe ses tests et le code de départ ne les passe pas tous', () => {
-    for (const ch of PROJET_CHAPTERS) {
+    for (const ch of chapitres) {
       for (const ex of ch.exercises) {
         if (!ex.referenceSolution || !ex.testCases) continue;
         const ref = runCCodeTestSuite(ex.referenceSolution, ex.testCases);
@@ -33,7 +38,7 @@ describe('Parcours C — concepts du projet ShopFlow', () => {
   });
 
   it('les exercices de prédiction annoncent la sortie réelle du programme', () => {
-    for (const ch of PROJET_CHAPTERS) {
+    for (const ch of chapitres) {
       for (const ex of ch.exercises) {
         if (ex.category !== 'prediction' || !ex.codeSnippet) continue;
         const res = compileAndRunC(ex.codeSnippet, ex.stdinForPrediction ?? '');
@@ -44,8 +49,8 @@ describe('Parcours C — concepts du projet ShopFlow', () => {
 
   it('les QCM, ordonnancements, traces et complétions sont cohérents', () => {
     const ids = new Set<string>();
-    for (const ch of PROJET_CHAPTERS) {
-      expect(ch.trackId).toBe('projet');
+    for (const ch of chapitres) {
+      expect(ch.trackId).toBe(trackId);
       expect(ch.exercises.length).toBeGreaterThanOrEqual(3);
       for (const q of ch.lesson.comprehensionQuestions) {
         expect(q.correctIndex).toBeLessThan(q.options.length);
@@ -69,6 +74,20 @@ describe('Parcours C — concepts du projet ShopFlow', () => {
           for (const g of ex.gaps) expect(ex.templateWithGaps).toContain(`{{${g.id}}}`);
         }
       }
+    }
+  });
+});
+
+describe('Parcours D — niveau approfondi', () => {
+  it('chaque chapitre a une explication approfondie et des exercices liés au projet et guidés', () => {
+    expect(DEFI_CHAPTERS.map((c) => c.id)).toEqual(['D01', 'D02', 'D03', 'D04']);
+    for (const ch of DEFI_CHAPTERS) {
+      expect(ch.lesson.deepDive?.length ?? 0).toBeGreaterThanOrEqual(5);
+      expect(ch.exercises.length).toBeGreaterThanOrEqual(6);
+      expect(ch.exercises.filter((e) => e.projectLink).length).toBeGreaterThanOrEqual(4);
+      const codeExercises = ch.exercises.filter((e) => e.referenceSolution);
+      expect(codeExercises.length).toBeGreaterThanOrEqual(2);
+      for (const ex of codeExercises) expect(ex.guidedSteps?.length ?? 0, ex.id).toBeGreaterThanOrEqual(3);
     }
   });
 });

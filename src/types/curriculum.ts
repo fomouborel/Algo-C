@@ -1,4 +1,4 @@
-export type TrackId = 'algo' | 'c' | 'projet';
+export type TrackId = 'algo' | 'c' | 'projet' | 'defi';
 
 export type DifficultyLevel = 'debutant' | 'intermediaire' | 'avance' | 'synthese';
 
@@ -68,6 +68,13 @@ export interface LessonContent {
   commonMistakes: CommonMistake[];
   summary: string[];
   comprehensionQuestions: LessonQuizQuestion[];
+  deepDive?: DeepDiveSection[]; // « Pour aller plus loin » : approfondissements (Parcours D)
+}
+
+export interface DeepDiveSection {
+  title: string;
+  content: string;
+  code?: string; // Optional illustrative snippet (not executed)
 }
 
 export interface CodeTestCase {
@@ -151,12 +158,14 @@ export interface Exercise {
   bridgePseudoSolution?: string;
 
   // Pedagogical support
+  projectLink?: string; // Where this skill is used in the ShopFlow project
+  guidedSteps?: string[]; // Step-by-step method shown before the work area
   hints: [string, string, string]; // 3 progressive hints
   detailedExplanation: string;
 }
 
 export interface Chapter {
-  id: string; // e.g. 'A01' .. 'A16', 'B01' .. 'B16', 'C01' .. 'C10'
+  id: string; // e.g. 'A01' .. 'A16', 'B01' .. 'B16', 'C01' .. 'C10', 'D01' .. 'D04'
   trackId: TrackId;
   number: number;
   title: string;

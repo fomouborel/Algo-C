@@ -342,3 +342,59 @@ describe('C99Engine — features used by the ShopFlow track (Parcours C)', () =>
     expect(runCCodeTestSuite(code, [{ ...tc, forbidMemoryLeaks: true }]).allPassed).toBe(false);
   });
 });
+
+describe('C99Engine — features used by the challenge track (Parcours D)', () => {
+  it('converts with strtol / strtof and reports the end pointer', () => {
+    const res = compileAndRunC(`
+      #include <stdio.h>
+      #include <stdlib.h>
+      int main(void) {
+        char *fin = NULL;
+        const char *s = "  42abc";
+        long v = strtol(s, &fin, 10);
+        const char *vide = "abc";
+        long w = strtol(vide, &fin, 10);
+        int rienLu = (fin == vide);
+        float f = strtof("79.90;12", &fin);
+        long h = strtol("0x1F", NULL, 16);
+        printf("%ld %ld %d %.2f [%s] %ld\\n", v, w, rienLu, f, fin, h);
+        return 0;
+      }
+    `);
+    expect(res.executionSuccess).toBe(true);
+    expect(res.stdout).toBe('42 0 1 79.90 [;12] 31\n');
+  });
+
+  it('writes fprintf(stderr, ...) to the error stream only', () => {
+    const res = compileAndRunC(`
+      #include <stdio.h>
+      int main(void) {
+        fprintf(stderr, "TRACE\\n");
+        fprintf(stdout, "sortie\\n");
+        return 0;
+      }
+    `);
+    expect(res.stdout).toBe('sortie\n');
+    expect(res.stderr).toBe('TRACE\n');
+  });
+
+  it('accepts the one-past-the-end address &t[n] (memmove of 0 element)', () => {
+    const res = compileAndRunC(`
+      #include <stdio.h>
+      #include <stdlib.h>
+      #include <string.h>
+      int main(void) {
+        int *t = malloc(3 * sizeof(int));
+        t[0] = 1; t[1] = 2; t[2] = 3;
+        memmove(&t[2], &t[3], 0);
+        int fixe[2] = {4, 5};
+        int *fin = &fixe[2];
+        printf("%d %d\\n", t[2], (int)(fin - fixe));
+        free(t);
+        return 0;
+      }
+    `);
+    expect(res.executionSuccess).toBe(true);
+    expect(res.stdout).toBe('3 2\n');
+  });
+});
