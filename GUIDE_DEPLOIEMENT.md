@@ -66,6 +66,9 @@ git push -u origin main
 4. Patientez environ 1 minute (vous pouvez suivre l'avancement dans l'onglet **Actions** du dépôt).
 5. Votre plateforme est disponible en ligne à l'adresse :
    `https://VOTRE_PSEUDO.github.io/algo-c-ingenieur/`
+   (pour ce dépôt : `https://fomouborel.github.io/Algo-C/`)
+
+Ensuite, chaque fusion dans la branche `main` relance automatiquement les tests puis le déploiement. Si les tests échouent, le site n'est pas mis à jour (la version précédente reste en ligne). Vous pouvez aussi relancer un déploiement à la main : onglet **Actions** > **Déploiement GitHub Pages** > **Run workflow**.
 
 ---
 
